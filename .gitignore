@@ -1,0 +1,25 @@
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+# eclipse conf file
+.settings
+.classpath
+.project
+.manager
+.scala_dependencies
+.cashe
+.cache-main
+.cache-tests
+.classpath
+/bin
+
+# filename i use to store output of mvn dependency:tree ~Claus
+deptree.txt
+# local project specific tmp folder
+tmp
