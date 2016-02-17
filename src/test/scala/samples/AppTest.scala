@@ -1,4 +1,4 @@
-package org.sansa.rdfstatistics.spark
+package samples
 
 import org.junit._
 import Assert._
