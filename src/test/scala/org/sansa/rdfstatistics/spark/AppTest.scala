@@ -1,4 +1,4 @@
-package org.aksw.spark.demo.WordCount
+package org.sansa.rdfstatistics.spark
 
 import org.junit._
 import Assert._
