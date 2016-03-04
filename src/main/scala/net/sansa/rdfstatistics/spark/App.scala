@@ -1,4 +1,4 @@
-package org.sansa.rdfstatistics.spark
+package net.sansa.rdfstatistics.spark
 
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
@@ -18,9 +18,9 @@ import com.hp.hpl.jena.rdf.model.ModelFactory
 import org.omg.PortableInterceptor.SYSTEM_EXCEPTION
 import org.openjena.riot.RiotReader
 import org.openjena.riot.Lang
-import org.sansa.rdfstatistics.spark.utils.Logging
-import org.sansa.rdfstatistics.spark.io._
-import org.sansa.rdfstatistics.spark.RDFStats._
+import net.sansa.rdfstatistics.spark.utils.Logging
+import net.sansa.rdfstatistics.spark.io._
+import net.sansa.rdfstatistics.spark.rdfstats.RDFStatistics
 
 object App extends Logging {
 
@@ -47,7 +47,7 @@ object App extends Logging {
     val triples = TripleReader.loadFromFile(file, sparkContext, 2)
 
     // compute  criterias
-    val rdf_statistics = new RDFStatistics(triples).apply
+    val rdf_statistics = new RDFStatistics(triples,sparkContext).apply
 
     // write triples on disk
     TripleWriter.writeToFile(rdf_statistics, outputPath)

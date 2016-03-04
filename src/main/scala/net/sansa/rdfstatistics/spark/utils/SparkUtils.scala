@@ -1,4 +1,4 @@
-package org.sansa.rdfstatistics.spark.utils
+package net.sansa.rdfstatistics.spark.utils
 
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
@@ -16,7 +16,7 @@ object SparkUtils {
       .setMaster(master)
       .setAppName(jobName)
       .setJars(jars)
-    conf.set("spark.kryo.registrator", System.getProperty("spark.kryo.registrator", "io.ddf.spark.content.KryoRegistrator"))
+    conf.set("spark.kryo.registrator", System.getProperty("spark.kryo.registrator", "org.sansa.rdfstatistics.spark.utils.Registrator"))
   }
 
   def createSparkContext(master: String, jobName: String, sparkHome: String, jars: Array[String],

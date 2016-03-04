@@ -1,4 +1,4 @@
-package org.sansa.rdfstatistics.spark.model
+package net.sansa.rdfstatistics.spark.model
 
 import com.hp.hpl.jena.graph.{ Triple => JTriple }
 import com.hp.hpl.jena.graph.{ Node => JNode }

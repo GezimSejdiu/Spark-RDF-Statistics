@@ -1,8 +1,8 @@
-package org.sansa.rdfstatistics.spark.io
+package net.sansa.rdfstatistics.spark.io
 
-import org.sansa.rdfstatistics.spark.utils.Logging
+import net.sansa.rdfstatistics.spark.utils.Logging
 import org.apache.spark.rdd.RDD
-import org.sansa.rdfstatistics.spark.model.Triples
+import net.sansa.rdfstatistics.spark.model.Triples
 
 /**
  * Writes triples to disk.

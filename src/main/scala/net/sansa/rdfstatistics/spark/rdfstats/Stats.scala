@@ -1,4 +1,4 @@
-package org.sansa.rdfstatistics.spark.RDFStats;
+package net.sansa.rdfstatistics.spark.rdfstats;
 
 /*
  

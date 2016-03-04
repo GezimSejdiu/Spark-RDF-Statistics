@@ -1,11 +1,11 @@
-package org.sansa.rdfstatistics.spark.io
+package net.sansa.rdfstatistics.spark.io
 
 import org.openjena.riot.RiotReader
-import org.sansa.rdfstatistics.spark.model._
 import org.openjena.riot.Lang
 import org.apache.spark.SparkContext
-import org.sansa.rdfstatistics.spark.utils.Logging
+import net.sansa.rdfstatistics.spark.utils.Logging
 import java.io.InputStream
+import net.sansa.rdfstatistics.spark.model.Triples
 
 /**
  * Reads triples.

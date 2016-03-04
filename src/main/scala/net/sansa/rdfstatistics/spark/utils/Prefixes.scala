@@ -1,4 +1,4 @@
-package org.sansa.rdfstatistics.spark.utils
+package net.sansa.rdfstatistics.spark.utils
 import java.security.MessageDigest
 
 object Prefixes {
