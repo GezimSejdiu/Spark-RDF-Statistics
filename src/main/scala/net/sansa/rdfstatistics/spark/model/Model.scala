@@ -4,6 +4,8 @@ import org.apache.spark.rdd.RDD
 import org.apache.ivy.core.module.descriptor.ExtendsDescriptor
 import org.apache.spark.SparkContext
 import net.sansa.rdfstatistics.spark.utils.Prefixes
+import org.apache.spark.{ Partition, TaskContext }
+import net.sansa.rdfstatistics.spark.utils.SparkUtils
 
 case class UsedClasses(triples: RDD[Triples]) extends Serializable {
 
@@ -11,7 +13,6 @@ case class UsedClasses(triples: RDD[Triples]) extends Serializable {
     triples.filter(f =>
       f.pred.equals(Prefixes.RDF_TYPE) && f.obj.isURI())
   }
-
 }
 
 case class ClassesDefined(triples: RDD[Triples]) extends Serializable {
@@ -28,7 +29,6 @@ case class ClassHierarchyDepth(triples: RDD[Triples]) extends Serializable {
     triples.filter(f =>
       f.pred.equals(Prefixes.RDFS_SUBCLASS_OF) && f.subj.isURI() && f.obj.isURI())
   }
-
 }
 
 case class EntityUsage(triples: RDD[Triples]) extends Serializable {
@@ -183,6 +183,41 @@ case class Vocabularies(triples: RDD[Triples]) extends Serializable {
 object Criterias extends Enumeration with Serializable {
   val USEDCLASSES, CLASSUSEDCOUNT = Value
 }
+
+class ClassUsageCount(triples: RDD[Triples]) extends RDD[Triples](triples) with Serializable {
+  override def compute(split: Partition, context: TaskContext): Iterator[Triples] = {
+    firstParent[Triples].iterator(split, context).map(tripleRecord => {
+      new Triples(tripleRecord.subj, tripleRecord.pred, tripleRecord.obj)
+    })
+  }
+
+  override protected def getPartitions: Array[Partition] = firstParent[Triples].partitions
+
+  def filter(triples: RDD[Triples]) {
+    triples.filter(f =>
+      f.pred.equals(Prefixes.RDF_TYPE) && f.obj.isURI())
+  }
+
+  def action(triples: RDD[Triples]) {
+    triples.map(_.obj)
+      .map(obj => (obj, 1))
+      .reduceByKey(_ + _)
+      .sortBy(_._2, false)
+  }
+
+  def hasPostProc() = true
+
+  def postProc(triples: RDD[Triples]) {
+    triples.take(100)
+    this.write(triples, SparkUtils.getHDFSPath)
+  }
+
+  def write(triples: RDD[Triples], path: String) {
+    triples.map(t => "<" + t.subj.getLiteral() + "> <" + t.pred.getLiteral() + "> <" + t.obj.getLiteral() + "> .")
+      .saveAsTextFile(path)
+  }
+}
+
 
 
 

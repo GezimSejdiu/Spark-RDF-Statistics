@@ -6,6 +6,7 @@ import org.apache.spark.SparkContext
 import net.sansa.rdfstatistics.spark.utils.Logging
 import java.io.InputStream
 import net.sansa.rdfstatistics.spark.model.Triples
+import org.apache.spark.rdd.RDD
 
 /**
  * Reads triples.
@@ -20,10 +21,10 @@ object TripleReader extends Logging {
     Triples(triples.getSubject(), triples.getPredicate(), triples.getObject())
   }
 
-  def loadFromFile(path: String, sc: SparkContext, minPartitions: Int = 2) = {
+  def loadFromFile(path: String, sc: SparkContext, minPartitions: Int = 2):RDD[Triples] = {
 
     val triples =
-      sc.textFile(path, minPartitions)
+      sc.textFile(path)//, minPartitions) seems to be slower when we cpecify minPartitions
         .filter(line => !line.trim().isEmpty & !line.startsWith("#"))
         .map(parseTriples)
 

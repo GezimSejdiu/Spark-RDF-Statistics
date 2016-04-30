@@ -60,14 +60,17 @@ class RDFStatistics(triples: RDD[Triples], sc: SparkContext) extends IRDFStatist
 	   * Property usage. 
 	   * This criterion is used to count the usage of properties within triples.
 	   */
-      val propertyusage = EntityUsage(triplesRDD).apply.map(_.pred)
-        .map(f => (f, 1)).reduceByKey(_ + _).take(100)
+      val propertyusage = EntityUsage(triplesRDD).apply
+        .map(_.pred)
+        .map(f => (f, 1))
+        .reduceByKey(_ + _)
+        .take(100)
 
       /*
 	   * 6.
 	   * Property usage distinct per subject.
 	   */
-      val propertyusagedistinctpersubject = EntityUsage(triplesRDD).apply
+      val propertyusagedistinctpersubject = EntityUsage(triplesRDD).apply.distinct
         .groupBy(_.subj)
         .map(f => (f._2.filter(p => p.pred.getLiteral().toString().contains(p)), 1))
         .reduceByKey(_ + _)
@@ -263,6 +266,9 @@ class RDFStatistics(triples: RDD[Triples], sc: SparkContext) extends IRDFStatist
         * Average per property {int,float,time}
         
       */
+      val M1 = Max_Avg_PerProperty(triplesRDD).apply.map(f => f.obj).count
+      val M2 = Max_Avg_PerProperty(triplesRDD).apply.map(f => f.pred).count
+      val avg_per_property = M1 / M2;
 
       /*
       * 30.
