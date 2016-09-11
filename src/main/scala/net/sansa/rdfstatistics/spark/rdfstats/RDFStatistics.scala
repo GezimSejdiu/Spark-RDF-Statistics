@@ -5,6 +5,8 @@ import com.hp.hpl.jena.graph.Node
 import net.sansa.rdfstatistics.spark.utils.Logging
 import net.sansa.rdfstatistics.spark.model._
 import org.apache.spark.SparkContext
+import org.apache.spark.graphx.Graph
+import org.apache.spark.graphx._
 
 /**
  * A Distributed implementation of RDF Statisctics.
@@ -52,13 +54,26 @@ class RDFStatistics(triples: RDD[Triples], sc: SparkContext) extends IRDFStatist
 	   * Gather hierarchy of c	lasses seen
 	   */
       val classhierarchydepth = ClassHierarchyDepth(triplesRDD).apply.map(f => (f.subj, f.obj))
+      /*
+      val indexedmap = (classhierarchydepth.map(_._1) union classhierarchydepth.map(_._2)).distinct.zipWithIndex
+      val vertices: RDD[(VertexId, String)] = indexedmap.map(x => (x._2, x._1))
+      
+      val tuples = rs.keyBy(_._1).join(indexedmap).map({
+      case (k, ((s, p, o), si)) => (o, (si, p))
+    })
 
+    val edges: RDD[Edge[String]] = tuples.join(indexedmap).map({
+      case (k, ((si, p), oi)) => Edge(si, oi, p)
+    })
+    
+    val triCounts = graph.triangleCount().vertices
+*/
       //classhierarchydepth.treeAggregate(zeroValue)(seqOp, combOp, depth)
 
       /*
 	   * 5.
 	   * Property usage. 
-	   * This criterion is used to count the usage of properties within triples.
+//	   * This criterion is used to count the usage of properties within triples.
 	   */
       val propertyusage = EntityUsage(triplesRDD).apply
         .map(_.pred)
@@ -268,7 +283,8 @@ class RDFStatistics(triples: RDD[Triples], sc: SparkContext) extends IRDFStatist
       */
       val M1 = Max_Avg_PerProperty(triplesRDD).apply.map(f => f.obj).count
       val M2 = Max_Avg_PerProperty(triplesRDD).apply.map(f => f.pred).count
-      val avg_per_property = M1 / M2;
+      val avg_per_property = if (M2 != 0) { M1 / M2 } else { 0 };
+  
 
       /*
       * 30.

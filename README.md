@@ -34,3 +34,11 @@ To run the application on a standalone Spark cluster
  		C/app/application.jar \
 		Cocktails /data/input /data/output  
   ```
+
+## Running the application on a Spark standalone cluster via Docker
+
+To run the application, execute the following steps:
+
+1. Setup a Spark cluster as described on http://github.com/big-data-europe/docker-spark.
+2. Build the Docker image: `docker build --rm=true -t sansa/spark-rdf-statistics .`
+3. Run the Docker container: `docker run --name Spark-RDF-Statistics-app -e ENABLE_INIT_DAEMON=false --link spark-master:spark-master  -d sansa/spark-rdf-statistics`
