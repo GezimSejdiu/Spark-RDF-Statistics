@@ -22,7 +22,6 @@ import net.sansa.rdfstatistics.spark.utils.Logging
 import net.sansa.rdfstatistics.spark.io._
 import net.sansa.rdfstatistics.spark.rdfstats.RDFStatistics
 import org.apache.spark.storage.StorageLevel
-import net.sansa.rdfstatistics.spark.rdfstats.RDFStatistics_WithRuntime
 import net.sansa.rdfstatistics.spark.utils.SparkUtils
 
 object App extends Logging {
@@ -40,7 +39,7 @@ object App extends Logging {
     val sparkContext = new SparkContext(sparkConf)
     sparkContext.setLogLevel("WARN")
 
-    val file = args(1)
+    val file = args(0)
     val outputPath = args(1)
 
     logger.info("Runing RDF-Statistics....")
@@ -53,7 +52,7 @@ object App extends Logging {
     val rdf_statistics = new RDFStatistics(triples, sparkContext).apply
 
     // write triples on disk
-    //TripleWriter.writeToFile(rdf_statistics, outputPath)
+    TripleWriter.writeToFile(rdf_statistics, outputPath)
     println("finished loading " + triples.count() + " triples in " + (System.currentTimeMillis() - startTime) + "ms.")
 
     sparkContext.stop()
