@@ -61,7 +61,7 @@ Go to http://your.docker.host:50070 and check if the file exists under the path 
 After we have all the configuration needed for our example, let’s rebuild Spark-RDF-Statistics.
 
 ```
-docker build --rm=true -t bde/flink-starter .
+docker build --rm=true -t sansa/spark-rdf-statistics .
 ```
 And then just run this image:
 ```
