@@ -25,6 +25,35 @@ object SparkUtils {
     val conf = createSparkConf(master, jobName, sparkHome, jars, environment)
     new SparkContext(conf)
   }
+  
+  def getSparkContext(): SparkContext = {
+    val conf = new SparkConf().setMaster("local[*]").setAppName("Spark-RDF-Statistics")
+    conf.setSparkHome("/opt/spark-1.5.1")
+    conf.setJars(SparkContext.jarOfClass(this.getClass).toSeq)
+    conf.set("spark.akka.frameSize", "128")
+    conf.set("spark.storage.memoryFraction", "0.5")
+    conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+    new SparkContext(conf)
+  }
+  
+   /**
+   * Set all loggers to the given log level.  Returns a map of the value of every logger
+   * @param level
+   * @param loggers
+   * @return
+   */
+  def setLogLevels(level: org.apache.log4j.Level, loggers: TraversableOnce[String]) =
+    {
+      loggers.map {
+        loggerName =>
+          val logger = org.apache.log4j.Logger.getLogger(loggerName)
+          val prevLevel = logger.getLevel()
+          logger.setLevel(level)
+          loggerName -> prevLevel
+      }.toMap
+    }
+  
+  
 
   def getSparkMasterURL(): String = {
     val sparkMasterUrl = System.getenv("SPARK_MASTER_URL")

@@ -1,12 +1,13 @@
 package net.sansa.rdfstatistics.spark.io
 
-import org.openjena.riot.RiotReader
-import org.openjena.riot.Lang
+/*import org.openjena.riot.RiotReader
+import org.openjena.riot.Lang*/
 import org.apache.spark.SparkContext
 import net.sansa.rdfstatistics.spark.utils.Logging
 import java.io.InputStream
 import net.sansa.rdfstatistics.spark.model.Triples
 import org.apache.spark.rdd.RDD
+import org.apache.jena.riot.{Lang, RDFDataMgr}
 
 /**
  * Reads triples.
@@ -17,7 +18,8 @@ import org.apache.spark.rdd.RDD
 object TripleReader extends Logging {
 
   def parseTriples(fn: String) = {
-    val triples = RiotReader.createIteratorTriples(new StringInputStream(fn), Lang.NTRIPLES, "http://example/base").next
+   // val triples = RiotReader.createIteratorTriples(new StringInputStream(fn), Lang.NTRIPLES, "http://example/base").next
+      val triples = RDFDataMgr.createIteratorTriples(new StringInputStream(fn), Lang.NTRIPLES, "http://example/base").next()
     Triples(triples.getSubject(), triples.getPredicate(), triples.getObject())
   }
 

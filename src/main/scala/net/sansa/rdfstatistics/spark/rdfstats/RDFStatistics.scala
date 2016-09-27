@@ -1,7 +1,6 @@
 package net.sansa.rdfstatistics.spark.rdfstats
 
 import org.apache.spark.rdd.RDD
-import com.hp.hpl.jena.graph.Node
 import net.sansa.rdfstatistics.spark.utils.Logging
 import net.sansa.rdfstatistics.spark.model._
 import org.apache.spark.SparkContext
