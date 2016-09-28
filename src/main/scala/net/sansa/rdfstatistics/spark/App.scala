@@ -13,11 +13,7 @@ import java.io.PrintWriter
 import scala.tools.nsc.io.Jar
 import scala.collection.mutable.ArrayBuffer
 import org.apache.spark.SparkConf
-import com.hp.hpl.jena.rdf.model.Model
-import com.hp.hpl.jena.rdf.model.ModelFactory
 import org.omg.PortableInterceptor.SYSTEM_EXCEPTION
-import org.openjena.riot.RiotReader
-import org.openjena.riot.Lang
 import net.sansa.rdfstatistics.spark.utils.Logging
 import net.sansa.rdfstatistics.spark.io._
 import net.sansa.rdfstatistics.spark.rdfstats.RDFStatistics
@@ -28,7 +24,7 @@ object App extends Logging {
 
   def main(args: Array[String]): Unit = {
 
-    val sparkMasterUrl = System.getenv("SPARK_MASTER_URL")
+   val sparkMasterUrl = System.getenv("SPARK_MASTER_URL")
 
     val sparkConf = new SparkConf()
       .setMaster(SparkUtils.getSparkMasterURL())
@@ -39,8 +35,8 @@ object App extends Logging {
     val sparkContext = new SparkContext(sparkConf)
     sparkContext.setLogLevel("WARN")
 
-    val file = args(0)
-    val outputPath = args(1)
+   val file =args(0)
+   val outputPath = args(1)
 
     logger.info("Runing RDF-Statistics....")
     val startTime = System.currentTimeMillis()
