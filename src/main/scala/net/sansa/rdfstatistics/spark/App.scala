@@ -24,7 +24,7 @@ object App extends Logging {
 
   def main(args: Array[String]): Unit = {
 
-   val sparkMasterUrl = System.getenv("SPARK_MASTER_URL")
+    val sparkMasterUrl = System.getenv("SPARK_MASTER_URL")
 
     val sparkConf = new SparkConf()
       .setMaster(SparkUtils.getSparkMasterURL())
@@ -33,10 +33,11 @@ object App extends Logging {
       .set("spark.kryoserializer.buffer.max", "512")
 
     val sparkContext = new SparkContext(sparkConf)
-    sparkContext.setLogLevel("WARN")
+    SparkUtils.setLogLevels(org.apache.log4j.Level.WARN, Seq("org.apache", "spark", "org.eclipse.jetty", "akka", "org"))
 
-   val file =args(0)
-   val outputPath = args(1)
+    val file = args(0)
+    val rdf_stats_file = new File(file).getName
+    val outputPath = args(1)
 
     logger.info("Runing RDF-Statistics....")
     val startTime = System.currentTimeMillis()
@@ -45,12 +46,15 @@ object App extends Logging {
     val triples = TripleReader.loadFromFile(file, sparkContext, 2)
 
     // compute  criterias
-    val rdf_statistics = new RDFStatistics(triples, sparkContext).apply
+    val rdf_statistics = RDFStatistics(triples, sparkContext)
 
-    // write triples on disk
-    TripleWriter.writeToFile(rdf_statistics, outputPath)
-    println("finished loading " + triples.count() + " triples in " + (System.currentTimeMillis() - startTime) + "ms.")
+    // write statistics on disk
+    TripleWriter.voidify(rdf_statistics,rdf_stats_file , outputPath)
+    //TripleWriter.writeToFile(rdf_statistics, outputPath)
+    println("finished computing RDF statistics for  " + rdf_stats_file + " in " + (System.currentTimeMillis() - startTime) + "ms.")
+
 
     sparkContext.stop()
   }
 }
+

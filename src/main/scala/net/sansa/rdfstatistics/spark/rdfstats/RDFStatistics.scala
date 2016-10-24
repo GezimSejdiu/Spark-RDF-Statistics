@@ -6,6 +6,8 @@ import net.sansa.rdfstatistics.spark.model._
 import org.apache.spark.SparkContext
 import org.apache.spark.graphx.Graph
 import org.apache.spark.graphx._
+import net.sansa.rdfstatistics.spark.utils.SparkUtils
+import net.sansa.rdfstatistics.spark.utils.Prefixes
 
 /**
  * A Distributed implementation of RDF Statisctics.
@@ -183,7 +185,7 @@ class RDFStatistics(triples: RDD[Triples], sc: SparkContext) extends IRDFStatist
 	   *  Distinct entities.
 	   *  To get a set/list of distinct entities of a dataset all IRIs are extracted from the respective triple and added to the set of entities.
 	   */
-      val entities = Entities(triplesRDD).apply.distinct
+      val entitiess = Entities(triplesRDD).apply.distinct
 
       /*
 	   * 17.
@@ -283,7 +285,6 @@ class RDFStatistics(triples: RDD[Triples], sc: SparkContext) extends IRDFStatist
       val M1 = Max_Avg_PerProperty(triplesRDD).apply.map(f => f.obj).count
       val M2 = Max_Avg_PerProperty(triplesRDD).apply.map(f => f.pred).count
       val avg_per_property = if (M2 != 0) { M1 / M2 } else { 0 };
-  
 
       /*
       * 30.
@@ -316,4 +317,235 @@ class RDFStatistics(triples: RDD[Triples], sc: SparkContext) extends IRDFStatist
       //usedclasses.union(classesdefined).distinct
       triplesRDD.distinct
     }
+
+  def run(): RDD[String] = {
+    Used_Classes(triples, sc)
+      .union(DistinctEntities(triples, sc))
+      .union(DistinctSubjects(triples, sc))
+      .union(DistinctObjects(triples, sc))
+      .union(PropertyUsage(triples, sc))
+      .union(SPO_Vocabularies(triples, sc))
+  }
 }
+
+object RDFStatistics {
+  def apply(triples: RDD[Triples], sc: SparkContext) = new RDFStatistics(triples, sc).run()
+}
+
+class Used_Classes(triples: RDD[Triples], sc: SparkContext) extends Serializable with Logging {
+
+  //?p=rdf:type && isIRI(?o)
+  def Filter() = triples.filter(f =>
+    f.pred.toString().equals(Prefixes.RDF_TYPE) && f.obj.isURI())
+
+  //M[?o]++ 
+  def Action() = Filter().map(_.obj)
+    .map(f => (f, 1))
+    .reduceByKey(_ + _)
+    .cache()
+
+  //top(M,100)
+  def PostProc() = Action().sortBy(_._2, false)
+    .take(100)
+
+  def Voidify() = {
+
+    var triplesString = new Array[String](1)
+    triplesString(0) = "\nvoid:classPartition "
+
+    val classes = sc.parallelize(PostProc())
+    val vc = classes.map(t => "[ \nvoid:class " + "<" + t._1 + ">; \nvoid:triples " + t._2 + ";\n], ")
+
+    var cl_a = new Array[String](1)
+    cl_a(0) = "\nvoid:classes " + Action().map(f => f._1).distinct().count
+    val c_p = sc.parallelize(triplesString)
+    val c = sc.parallelize(cl_a)
+    c.union(c_p).union(vc)
+  }
+}
+object Used_Classes {
+
+  def apply(triples: RDD[Triples], sc: SparkContext) = new Used_Classes(triples, sc).Voidify()
+
+}
+
+class Classes_Defined(triples: RDD[Triples], sc: SparkContext) extends Serializable with Logging {
+
+  //?p=rdf:type && isIRI(?s) &&(?o=rdfs:Class||?o=owl:Class)
+  def Filter() = triples.filter(f =>
+    (f.pred.toString().equals(Prefixes.RDF_TYPE) && f.obj.toString().equals(Prefixes.RDFS_CLASS))
+      || (f.pred.toString().equals(Prefixes.RDF_TYPE) && f.obj.toString().equals(Prefixes.OWL_CLASS))
+      && !f.subj.isURI())
+
+  //M[?o]++ 
+  def Action() = Filter().map(_.subj).distinct()
+
+  def PostProc() = Action().count()
+
+  def Voidify() = {
+    var cd = new Array[String](1)
+    cd(0) = "\nvoid:classes  " + PostProc() + ";"
+    sc.parallelize(cd)
+  }
+}
+object Classes_Defined {
+
+  def apply(triples: RDD[Triples], sc: SparkContext) = new Classes_Defined(triples, sc).Voidify()
+}
+
+class PropertiesDefined(triples: RDD[Triples], sc: SparkContext) extends Serializable with Logging {
+
+  def Filter() = triples.filter(f =>
+    (f.pred.toString().equals(Prefixes.RDF_TYPE) && f.obj.toString().equals(Prefixes.OWL_OBJECT_PROPERTY))
+      || (f.pred.toString().equals(Prefixes.RDF_TYPE) && f.obj.toString().equals(Prefixes.RDF_PROPERTY))
+      && !f.subj.isURI())
+  def Action() = Filter().map(_.pred).distinct()
+
+  def PostProc() = Action().count()
+
+  def Voidify() = {
+    var cd = new Array[String](1)
+    cd(0) = "\nvoid:properties  " + PostProc() + ";"
+    sc.parallelize(cd)
+  }
+}
+object PropertiesDefined {
+
+  def apply(triples: RDD[Triples], sc: SparkContext) = new PropertiesDefined(triples, sc).Voidify()
+}
+
+class PropertyUsage(triples: RDD[Triples], sc: SparkContext) extends Serializable with Logging {
+
+  def Filter() = triples
+
+  //M[?p]++
+  def Action() = Filter().map(_.pred)
+    .map(f => (f, 1))
+    .reduceByKey(_ + _)
+    .cache()
+
+  //top(M,100)
+  def PostProc() = Action().sortBy(_._2, false)
+    .take(100)
+
+  def Voidify() = {
+
+    var triplesString = new Array[String](1)
+    triplesString(0) = "\nvoid:propertyPartition "
+
+    val properties = sc.parallelize(PostProc())
+    val vp = properties.map(t => "[ \nvoid:property " + "<" + t._1 + ">; \nvoid:triples " + t._2 + ";\n], ")
+
+    var pl_a = new Array[String](1)
+    pl_a(0) = "\nvoid:properties " + Action().map(f => f._1).distinct().count
+    val c_p = sc.parallelize(triplesString)
+    val p = sc.parallelize(pl_a)
+    p.union(c_p).union(vp)
+
+    /* var triplesString = new Array[String](1)
+    triplesString(0) = "\nvoid:propertyPartition "
+
+    val header = sc.parallelize(triplesString)
+
+    val properties = sc.parallelize(PostProc())
+      .map(t => "[ \nvoid:property " + "<" + t._1 + ">; \nvoid:triples " + t._2 + ";\n], ")
+
+    header.union(properties)*/
+  }
+}
+object PropertyUsage {
+
+  def apply(triples: RDD[Triples], sc: SparkContext) = new PropertyUsage(triples, sc).Voidify()
+
+}
+
+class DistinctEntities(triples: RDD[Triples], sc: SparkContext) extends Serializable with Logging {
+
+  def Filter() = triples.filter(f =>
+    (f.subj.isURI() && f.pred.isURI() && f.obj.isURI()))
+
+  def Action() = Filter().distinct()
+
+  def PostProc() = Action().count()
+
+  def Voidify() = {
+    var ents = new Array[String](1)
+    ents(0) = "\nvoid:entities  " + PostProc() + ";"
+    sc.parallelize(ents)
+  }
+}
+object DistinctEntities {
+
+  def apply(triples: RDD[Triples], sc: SparkContext) = new DistinctEntities(triples, sc).Voidify()
+}
+
+class DistinctSubjects(triples: RDD[Triples], sc: SparkContext) extends Serializable with Logging {
+
+  def Filter() = triples.filter(f => f.subj.isURI())
+
+  def Action() = Filter().distinct()
+
+  def PostProc() = Action().count()
+
+  def Voidify() = {
+    var ents = new Array[String](1)
+    ents(0) = "\nvoid:distinctSubjects  " + PostProc() + ";"
+    sc.parallelize(ents)
+  }
+}
+object DistinctSubjects {
+
+  def apply(triples: RDD[Triples], sc: SparkContext) = new DistinctSubjects(triples, sc).Voidify()
+}
+
+class DistinctObjects(triples: RDD[Triples], sc: SparkContext) extends Serializable with Logging {
+
+  def Filter() = triples.filter(f => f.obj.isURI())
+
+  def Action() = Filter().distinct()
+
+  def PostProc() = Action().count()
+
+  def Voidify() = {
+    var ents = new Array[String](1)
+    ents(0) = "\nvoid:distinctObjects  " + PostProc() + ";"
+    sc.parallelize(ents)
+  }
+}
+object DistinctObjects {
+
+  def apply(triples: RDD[Triples], sc: SparkContext) = new DistinctObjects(triples, sc).Voidify()
+}
+
+class SPO_Vocabularies(triples: RDD[Triples], sc: SparkContext) extends Serializable with Logging {
+
+  def Filter() = triples
+
+  def Action(node: org.apache.jena.graph.Node) = Filter(). map(f => node.getNameSpace()).cache()
+
+  def SubjectVocabulariesAction() = Filter().filter(f=>f.subj.isURI()).map(f => (f.subj.getNameSpace())).cache
+  def SubjectVocabulariesPostProc() = SubjectVocabulariesAction()
+    .map(f => (f, 1)).reduceByKey(_ + _)
+
+  def PredicateVocabulariesAction() = Filter().filter(f=>f.pred.isURI()).map(f => (f.pred.getNameSpace())).cache
+  def PredicateVocabulariesPostProc() = PredicateVocabulariesAction()
+    .map(f => (f, 1)).reduceByKey(_ + _)
+
+  def ObjectVocabulariesAction() = Filter().filter(f=>f.obj.isURI()).map(f => (f.obj.getNameSpace())).cache
+  def ObjectVocabulariesPostProc() = ObjectVocabulariesAction()
+    .map(f => (f, 1)).reduceByKey(_ + _)
+
+  def PostProc(node: org.apache.jena.graph.Node) = Filter().map(f => node.getNameSpace())
+    .map(f => (f, 1)).reduceByKey(_ + _)
+
+  def Voidify() = {
+    var ents = new Array[String](1)
+    ents(0) = "\nvoid:vocabulary  <" + SubjectVocabulariesAction().union(PredicateVocabulariesAction()).union(ObjectVocabulariesAction()).distinct().take(15).mkString(">, <") + ">;"
+    sc.parallelize(ents)
+  }
+}
+object SPO_Vocabularies {
+
+  def apply(triples: RDD[Triples], sc: SparkContext) = new SPO_Vocabularies(triples, sc).Voidify()
+}
+

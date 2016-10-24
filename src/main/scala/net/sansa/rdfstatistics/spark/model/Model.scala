@@ -209,7 +209,7 @@ class ClassUsageCount(triples: RDD[Triples]) extends RDD[Triples](triples) with 
 
   def postProc(triples: RDD[Triples]) {
     triples.take(100)
-    this.write(triples, SparkUtils.getHDFSPath)
+    this.write(triples, SparkUtils.HDFSPath)
   }
 
   def write(triples: RDD[Triples], path: String) {
