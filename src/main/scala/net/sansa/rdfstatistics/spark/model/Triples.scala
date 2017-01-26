@@ -1,9 +1,9 @@
 package net.sansa.rdfstatistics.spark.model
 
-/*import com.hp.hpl.jena.graph.{ Triple => JTriple }
-import com.hp.hpl.jena.graph.{ Node => JNode }*/
-import org.apache.jena.graph.{Node=>JNode,Triple=>JTriple, Node_URI, Node_Concrete}
-/**
+import com.hp.hpl.jena.graph.{ Triple => JTriple }
+import com.hp.hpl.jena.graph.{ Node => JNode }
+//import org.apache.jena.graph.{Node=>JNode,Triple=>JTriple, Node_URI, Node_Concrete}
+/*
  * A data structure for a set of triples.
  *
  * @author Gezim Sejdiu

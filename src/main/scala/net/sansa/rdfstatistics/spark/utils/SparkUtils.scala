@@ -12,7 +12,7 @@ object SparkUtils {
   final var HDFSPath: String = "hdfs://"
 
   def createSparkConf(master: String, jobName: String, sparkHome: String, jars: Array[String],
-    environment: JMap[String, String]): SparkConf = {
+                      environment: JMap[String, String]): SparkConf = {
     val conf = new SparkConf()
       .setMaster(master)
       .setAppName(jobName)
@@ -21,11 +21,11 @@ object SparkUtils {
   }
 
   def createSparkContext(master: String, jobName: String, sparkHome: String, jars: Array[String],
-    environment: JMap[String, String]): SparkContext = {
+                         environment: JMap[String, String]): SparkContext = {
     val conf = createSparkConf(master, jobName, sparkHome, jars, environment)
     new SparkContext(conf)
   }
-  
+
   def getSparkContext(): SparkContext = {
     val conf = new SparkConf().setMaster("local[*]").setAppName("Spark-RDF-Statistics")
     conf.setSparkHome("/opt/spark-1.5.1")
@@ -35,8 +35,8 @@ object SparkUtils {
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     new SparkContext(conf)
   }
-  
-   /**
+
+  /**
    * Set all loggers to the given log level.  Returns a map of the value of every logger
    * @param level
    * @param loggers
@@ -52,13 +52,12 @@ object SparkUtils {
           loggerName -> prevLevel
       }.toMap
     }
-  
-  
 
   def getSparkMasterURL(): String = {
-    val sparkMasterUrl = System.getenv("SPARK_MASTER_URL")
+    var sparkMasterUrl = System.getenv("SPARK_MASTER_URL")
     if (sparkMasterUrl.isEmpty()) {
-      throw new IllegalStateException("SPARK_MASTER_URL environment variable must be set.");
+      //throw new IllegalStateException("SPARK_MASTER_URL environment variable must be set.");
+      sparkMasterUrl = "local[*]"
     }
     sparkMasterUrl
   }
