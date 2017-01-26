@@ -8,6 +8,9 @@ import org.apache.spark.graphx.Graph
 import org.apache.spark.graphx._
 import net.sansa.rdfstatistics.spark.utils.SparkUtils
 import net.sansa.rdfstatistics.spark.utils.Prefixes
+import org.apache.spark.storage.StorageLevel
+import net.sansa.rdfstatistics.spark.utils.Prefixes
+import org.apache.spark.sql.SQLContext
 
 /**
  * A Distributed implementation of RDF Statisctics.
@@ -326,10 +329,35 @@ class RDFStatistics(triples: RDD[Triples], sc: SparkContext) extends IRDFStatist
       .union(PropertyUsage(triples, sc))
       .union(SPO_Vocabularies(triples, sc))
   }
+
+  def runWithCached: RDD[String] = {
+    if (triples.getStorageLevel == StorageLevel.NONE)
+      triples.cache()
+    val cd = Classes_Defined(triples, sc)
+    val uc = Used_Classes(triples, sc)
+    uc.union(cd)
+    triples.unpersist()
+    uc.unpersist()
+    cd.unpersist()
+  }
+
+  def runWithoutCached: RDD[String] = {
+    val s = triples.persist(StorageLevel.DISK_ONLY)
+    val cd = Classes_Defined(triples, sc)
+    val uc = Used_Classes(triples, sc)
+    uc.union(cd)
+
+  }
 }
 
 object RDFStatistics {
   def apply(triples: RDD[Triples], sc: SparkContext) = new RDFStatistics(triples, sc).run()
+}
+object RDFStatisticsWithCached {
+  def apply(triples: RDD[Triples], sc: SparkContext) = new RDFStatistics(triples, sc).runWithCached
+}
+object RDFStatisticsWithouCache {
+  def apply(triples: RDD[Triples], sc: SparkContext) = new RDFStatistics(triples, sc).runWithoutCached
 }
 
 class Used_Classes(triples: RDD[Triples], sc: SparkContext) extends Serializable with Logging {
@@ -368,6 +396,14 @@ object Used_Classes {
   def apply(triples: RDD[Triples], sc: SparkContext) = new Used_Classes(triples, sc).Voidify()
 
 }
+
+class ClassDistribution(triples: TriplesDataFrame, sq: SQLContext) extends Serializable with Logging {
+
+  val used_classes = triples.sql("SELECT object, COUNT(object) FROM Triples WHERE predicate='" + Prefixes.RDF_TYPE + "'"
+    + " GROUP BY object")
+
+}
+
 
 class Classes_Defined(triples: RDD[Triples], sc: SparkContext) extends Serializable with Logging {
 
@@ -521,21 +557,21 @@ class SPO_Vocabularies(triples: RDD[Triples], sc: SparkContext) extends Serializ
 
   def Filter() = triples
 
-  def Action(node: org.apache.jena.graph.Node) = Filter(). map(f => node.getNameSpace()).cache()
+  def Action(node: com.hp.hpl.jena.graph.Node) = Filter().map(f => node.getNameSpace()).cache()
 
-  def SubjectVocabulariesAction() = Filter().filter(f=>f.subj.isURI()).map(f => (f.subj.getNameSpace())).cache
+  def SubjectVocabulariesAction() = Filter().filter(f => f.subj.isURI()).map(f => (f.subj.getNameSpace())).cache
   def SubjectVocabulariesPostProc() = SubjectVocabulariesAction()
     .map(f => (f, 1)).reduceByKey(_ + _)
 
-  def PredicateVocabulariesAction() = Filter().filter(f=>f.pred.isURI()).map(f => (f.pred.getNameSpace())).cache
+  def PredicateVocabulariesAction() = Filter().filter(f => f.pred.isURI()).map(f => (f.pred.getNameSpace())).cache
   def PredicateVocabulariesPostProc() = PredicateVocabulariesAction()
     .map(f => (f, 1)).reduceByKey(_ + _)
 
-  def ObjectVocabulariesAction() = Filter().filter(f=>f.obj.isURI()).map(f => (f.obj.getNameSpace())).cache
+  def ObjectVocabulariesAction() = Filter().filter(f => f.obj.isURI()).map(f => (f.obj.getNameSpace())).cache
   def ObjectVocabulariesPostProc() = ObjectVocabulariesAction()
     .map(f => (f, 1)).reduceByKey(_ + _)
 
-  def PostProc(node: org.apache.jena.graph.Node) = Filter().map(f => node.getNameSpace())
+  def PostProc(node: com.hp.hpl.jena.graph.Node) = Filter().map(f => node.getNameSpace())
     .map(f => (f, 1)).reduceByKey(_ + _)
 
   def Voidify() = {
