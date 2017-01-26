@@ -7,7 +7,10 @@ import net.sansa.rdfstatistics.spark.utils.Logging
 import java.io.InputStream
 import net.sansa.rdfstatistics.spark.model.Triples
 import org.apache.spark.rdd.RDD
-import org.apache.jena.riot.{ Lang, RDFDataMgr }
+//import org.apache.jena.riot.{ Lang, RDFDataMgr }
+//import org.apache.jena.riot.RiotReader
+import org.openjena.riot.{ Lang, RiotReader }
+import net.sansa.rdfstatistics.spark.model.TriplesRDD
 
 /**
  * Reads triples.
@@ -24,25 +27,10 @@ object TripleReader extends Logging {
     val base = tis.getBaseURI();
     val itTriple = RiotReader.createIteratorTriples(tis, lang, base).next*/
 
-    val triples = RDFDataMgr.createIteratorTriples(new StringInputStream(fn), Lang.NTRIPLES, "http://example/base").next
+    //val triples = RDFDataMgr.createIteratorTriples(new StringInputStream(fn), Lang.NTRIPLES, "http://example/base").next
+    val triples = RiotReader.createIteratorTriples(new StringInputStream(fn), Lang.NTRIPLES, "http://example/base").next
 
     Triples(triples.getSubject(), triples.getPredicate(), triples.getObject())
-  }
-
-  def parseTriples2(fn: String) = {
-
-    val iterator = RDFDataMgr.createIteratorTriples(new StringInputStream(fn), Lang.NTRIPLES, "http://example/base")
-    var Subject:org.apache.jena.graph.Node = null
-    var Predicate :org.apache.jena.graph.Node = null
-    var Object :org.apache.jena.graph.Node = null
-
-    while(iterator.hasNext()) {
-      val triples = iterator.next();
-      Subject = triples.getSubject
-      Predicate = triples.getPredicate
-      Object = triples.getObject
-    }
-    Triples(Subject, Predicate, Object)
   }
 
   def loadFromFile(path: String, sc: SparkContext, minPartitions: Int = 2): RDD[Triples] = {
@@ -52,6 +40,16 @@ object TripleReader extends Logging {
         .filter(line => !line.trim().isEmpty & !line.startsWith("#"))
         .map(parseTriples)
     triples
+  }
+
+  def loadFromFile(path: String, sc: SparkContext): TriplesRDD = {
+    val triples = sc.textFile(path)
+      .map { line =>
+        val it = RiotReader.createIteratorTriples(new StringInputStream(path), Lang.NTRIPLES, "http://example/base").next
+        Triples(it.getSubject, it.getPredicate, it.getObject)
+      }
+
+    TriplesRDD(triples)
   }
 
 }
