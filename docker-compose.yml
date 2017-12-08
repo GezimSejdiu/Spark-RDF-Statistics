@@ -1,7 +1,7 @@
 version: '2' 
 services:
  namenode:
-    image: bde2020/hadoop-namenode:1.0.0
+    image: bde2020/hadoop-namenode:1.1.0-hadoop2.7.1-java8
     hostname: namenode
     container_name: namenode
     domainname: hadoop
@@ -17,7 +17,7 @@ services:
       - "50070:50070"
       - "8020:8020"
  datanode1:
-    image: bde2020/hadoop-datanode:1.0.0
+    image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
     hostname: datanode1
     container_name: datanode1
     domainname: hadoop
@@ -29,7 +29,7 @@ services:
       - ./hadoop.env
 
  datanode2:
-    image: bde2020/hadoop-datanode:1.0.0
+    image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
     hostname: datanode2
     container_name: datanode2
     domainname: hadoop
@@ -41,7 +41,7 @@ services:
       - ./hadoop.env
 
  spark-master:
-   image: bde2020/spark-master:1.6.2-hadoop2.6
+   image: bde2020/spark-master:2.2.0-hadoop2.7
    hostname: spark-master
    container_name: spark-master
    domainname: hadoop
@@ -59,7 +59,7 @@ services:
      - "8080:8080"
 
  spark-worker:
-   image: bde2020/spark-worker:1.6.2-hadoop2.6
+   image: bde2020/spark-worker:2.2.0-hadoop2.7
    hostname: spark-worker
    container_name: spark-worker
    domainname: hadoop
@@ -76,7 +76,7 @@ services:
    links:
       - "spark-master"
  hue:
-    image: bde2020/hdfs-filebrowser:3.9
+    image: bde2020/hdfs-filebrowser:latest
     hostname: hdfsfb
     container_name: hdfsfb
     domainname: hadoop
