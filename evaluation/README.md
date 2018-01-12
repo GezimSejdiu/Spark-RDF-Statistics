@@ -52,11 +52,11 @@ Before computing statistics, download datasets and upload them on the HDFS. The 
 ### Experiments
 * Distributed Processing on Large-Scale Datasets
 Run DistLODStats agains the datasets and get the stats generated. Run the following command to get the results:
-    1. For `cluster` mode
+  * For `cluster` mode
     ```sh
     ./run_stats.sh Dbpedia_en Iter1
     ```
-    1. For `local` mode
+  * For `local` mode
     ```sh
     ./run_stats-local.sh Dbpedia_en Iter1
     ```
