@@ -1,8 +1,16 @@
 # Spark-RDF-Statistics
-RDF-Statistics Spark Library.
+>Distributed Computation of RDF Dataset Statistics
 
+For further development of the projet see https://github.com/SANSA-Stack/SANSA-RDF, since it has been integrated with [SANSA](https://github.com/SANSA-Stack) core. 
 ## Description
-RDF-Statistics Spark Library.
+Over the last years, the Semantic Web has been growing steadily. Today, we count more than 10,000 datasets made online available following Semantic Web standards.
+Thanks to those standards, data is machine-readable and interoperable.
+Nevertheless, many applications, such as data integration, search, and interlinking, may not take the full advantage of the data without having a priori statistical information about data's internal structure and coverage.
+In fact, there are already a number of tools, which offer such statistics, providing basic information about RDF datasets and vocabularies.
+However, those works showed severe deficiencies in terms of performance once the dataset size grows beyond the capabilities of a single machine.
+In this paper, we introduce an approach for statistical calculation of large RDF datasets, which scales out to clusters of machines.
+We describe the first distributed in-memory approach for computing 32 different statistical criteria for RDF datasets using Apache Spark.
+The preliminary results show that our distributed approach improves upon a previous centralized approach we compare against.
 
 ## Spark-RDF main application class
 The main application class is `net.sansa.rdfstatistics.spark.App`.
@@ -69,5 +77,6 @@ docker run --name Spark-RDF-Statistics-app --net hadoop --link spark-master:spar
 -e ENABLE_INIT_DAEMON=false \
 -d sansa/spark-rdf-statistics
 ```
-
+#Evaluations 
+For more details on evaluations and experiments, have a look on the [evaluation](evaluation/) section.
 
