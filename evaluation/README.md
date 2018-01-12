@@ -1,7 +1,7 @@
 ## Get Started
 In order to be able to submit RDFStats at `spark-submit`, first clone the repo and compile the project.
 
-##Load the RDF datasets
+### Load the RDF datasets
 Before computing statistics, download datasets and upload them on the HDFS. The following steps should be taken :
 * Download DBPedia and extract it on bin .nt file
     * Dbpedia en
@@ -49,7 +49,7 @@ Before computing statistics, download datasets and upload them on the HDFS. The 
      ```sh
      hadoop fs -put BSBM_XGB.nt /<pathToHDFS>/
      ```
-## Experiments
+### Experiments
 * Distributed Processing on Large-Scale Datasets
 Run DistLODStats agains the datasets and get the stats generated. Run the following command to get the results:
     1. For `cluster` mode
