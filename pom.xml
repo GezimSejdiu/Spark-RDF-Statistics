@@ -1,7 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>net.sansa-stack.rdf-statistics.spark</groupId>
+	<groupId>net.sansa-stack</groupId>
 	<artifactId>Spark-RDF-Statistics</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<inceptionYear>2016</inceptionYear>
@@ -12,12 +13,13 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<encoding>UTF-8</encoding>
-		<scala.version>2.11.7</scala.version>
+		<scala.version>2.11.11</scala.version>
 		<scala.compat.version>2.11</scala.compat.version>
-		<spark.version>2.0.1</spark.version>
-		<mainclass>net.sansa.rdfstatistics.spark.ESWC_app</mainclass>
+		<spark.version>2.3.1</spark.version>
+		<mainclass>net.sansa_stack.rdf.spark.RDFStats</mainclass>
 		<org.slf4j-version>1.7.13</org.slf4j-version>
-		<jena.version>3.0.1</jena.version>
+		<jena.version>3.5.0</jena.version>
+		<sansa.version>0.3.1-SNAPSHOT</sansa.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -53,25 +55,26 @@
 			<version>${spark.version}</version>
 		</dependency>
 
+		<!-- RDF Layer -->
 		<dependency>
-			<groupId>com.hp.hpl.jena</groupId>
-			<artifactId>jena</artifactId>
-			<version>2.6.4</version>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>sansa-rdf-spark_${scala.compat.version}</artifactId>
+			<version>${sansa.version}</version>
 		</dependency>
+
+
+		<!-- Apache JENA 3.x -->
 		<dependency>
 			<groupId>org.apache.jena</groupId>
 			<artifactId>jena-core</artifactId>
-			<version>2.7.2</version>
+			<version>${jena.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.jena</groupId>
 			<artifactId>jena-arq</artifactId>
-			<version>2.9.1</version>
+			<version>${jena.version}</version>
 		</dependency>
-		<!-- <dependency> <groupId>org.apache.jena</groupId> <artifactId>jena-core</artifactId> 
-			<version>${jena.version}</version> </dependency> <dependency> <groupId>org.apache.jena</groupId> 
-			<artifactId>jena-arq</artifactId> <version>2.9.1</version> <version>${jena.version}</version> 
-			</dependency> -->
+
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-compress</artifactId>
@@ -98,6 +101,13 @@
 			<artifactId>scalatest_${scala.compat.version}</artifactId>
 			<version>2.2.4</version>
 			<scope>test</scope>
+		</dependency>
+
+		<!-- Scopt -->
+		<dependency>
+			<groupId>com.github.scopt</groupId>
+			<artifactId>scopt_${scala.compat.version}</artifactId>
+			<version>3.5.0</version>
 		</dependency>
 
 	</dependencies>
