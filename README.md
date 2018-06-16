@@ -13,7 +13,7 @@ We describe the first distributed in-memory approach for computing 32 different 
 The preliminary results show that our distributed approach improves upon a previous centralized approach we compare against.
 
 ## Spark-RDF main application class
-The main application class is `net.sansa.rdfstatistics.spark.App`.
+The main application class is `net.sansa_stack.rdf.spark.RDFStats`.
 The application requires as application arguments:
 
 1. path to the input folder containing the RDF data as nt (e.g. `/data/input`)
@@ -37,10 +37,10 @@ To run the application on a standalone Spark cluster
 
   ```
   spark-submit \
-		--class net.sansa.rdfstatistics.spark.App \
+		--class net.sansa_stack.rdf.spark.RDFStats \
 		--master spark://spark-master:7077 \
  		/app/application.jar \
-		/data/input /data/output  
+		-i /data/input -o /data/output  
   ```
 
 ## Running the application on a Spark standalone cluster via Docker
